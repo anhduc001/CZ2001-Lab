@@ -72,11 +72,8 @@ class DoubleHash: protected HashTable{
 			return false;
 		}
 };
-
-int main()
-{
-    int i;
-	LinearProbe table;
+void LinearProbeTest(){
+    LinearProbe table;
 	table.insert(1);
 	table.insert(5);
 	table.insert(10);
@@ -86,6 +83,34 @@ int main()
 	cout << table.retrieve(4) << endl;
 	cout << table.retrieve(5) << endl;
 	cout << table.retrieve(10)<< endl;
-	cin >> i;
+}
+void DoubleHashingTest(){
+    DoubleHash table;
+    table.insert(2);
+    table.insert(43);
+    table.insert(434);
+    table.insert(107);
+    cout << table.retrieve(1) << endl;
+}
+int main()
+{
+    int choice;
+    bool stop = false;
+    while (!stop){
+        cout << "Enter your hashing choice: ";
+        cin >> choice;
+        switch(choice){
+            case 0:
+                LinearProbeTest();
+                break;
+            case 1:
+                DoubleHashingTest();
+                break;
+            default:
+               stop = true;
+               break;
+        }
+    }
+    cout << "The program terminated!" << endl;
     return 0;
 }
