@@ -1,16 +1,17 @@
 #include "iostream"
-
+#define TABLE_SIZE  101
+#define SECOND_HASH_PRIME 107
 using namespace std;
 
 class HashTable{
     protected:
-        int table[101] = {0};
+        int table[TABLE_SIZE] = {0};
 };
 
-class LinearProbe: protected HashTable{
+class LinearProbe : protected HashTable{
 	private:
 		int hashFunction(int item){
-			return item % 101;
+			return item % TABLE_SIZE;
 		};
 	public:
 		bool insert(int item){
@@ -18,19 +19,20 @@ class LinearProbe: protected HashTable{
 			int index = base_index;
 			while(table[index] != 0){
 				index++;
-				if(index >= 101) index = index % 101;
+				if(index >= TABLE_SIZE) index = index % TABLE_SIZE;
 				if(index == base_index) return false;
 			}
 			table[index] = item;
 			return true;
 		};
+
 		bool retrieve(int item){
 			int base_index = hashFunction(item);
 			int index = base_index;
 			while(table[index] != 0){
 				if(table[index] == item) return true;
 				index++;
-				if(index >= 101) index = index % 101;
+				if(index >= TABLE_SIZE) index = index % TABLE_SIZE;
 				if(index == base_index) return false;
 			}
 			return false;
@@ -39,10 +41,10 @@ class LinearProbe: protected HashTable{
 class DoubleHash: protected HashTable{
 	private:
 		int hashFunction1(int item){
-			return item % 101;
+			return item % TABLE_SIZE;
 		};
 		int hashFunction2(int item){
-			return item % 107;
+			return item % SECOND_HASH_PRIME;
 		};
 	public:
 		bool insert(int item){
@@ -51,7 +53,7 @@ class DoubleHash: protected HashTable{
 			int index = base_index;
 			while(table[index] != 0){
 				index += offset;
-				if(index >= 101) index = index % 101;
+				if(index >= TABLE_SIZE) index = index % TABLE_SIZE;
 				if(index == base_index) return false;
 			}
 			table[index] = item;
@@ -64,7 +66,7 @@ class DoubleHash: protected HashTable{
 			while(table[index] != 0){
 				if(table[index] == item) return true;
 				index += offset;
-				if(index >= 101) index = index % 101;
+				if(index >= TABLE_SIZE) index = index % TABLE_SIZE;
 				if(index == base_index) return false;
 			}
 			return false;
@@ -79,11 +81,11 @@ int main()
 	table.insert(5);
 	table.insert(10);
 	cout << (table.retrieve(1) == 1);
-	cout << table.retrieve(2);
-	cout << table.retrieve(3);
-	cout << table.retrieve(4);
-	cout << table.retrieve(5);
-	cout << table.retrieve(10);
+	cout << table.retrieve(2) << endl;
+	cout << table.retrieve(3) << endl;
+	cout << table.retrieve(4) << endl;
+	cout << table.retrieve(5) << endl;
+	cout << table.retrieve(10)<< endl;
 	cin >> i;
     return 0;
 }
