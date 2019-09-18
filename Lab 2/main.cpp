@@ -1,3 +1,4 @@
+#include "fstream"
 #include "iostream"
 #include "chrono"
 #include "random"
@@ -5,10 +6,13 @@
 
 using namespace std;
 
+const int testFreq = 1000;
+const int testSize = 1000;
+
 class HashTable{
     public:
-        virtual bool insert(int item){};
-        virtual bool contains(int item){};
+        virtual bool insert(int item){return false;};
+        virtual bool contains(int item){return false;};
         void print(){
             for(int i = 0; i < hashtableSize; i++){
                 if(table[i] != 0){
@@ -98,7 +102,7 @@ vector<int> GenerateRandomNumbers(int num, vector<int>* exist){
     vector<int> ret;
     random_device rd;     // only used once to initialise (seed) engine
     mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
-    uniform_int_distribution<int> uni(1,10000); // guaranteed unbiased
+    uniform_int_distribution<int> uni(1000000,9999999); // guaranteed unbiased
     for(int i = 0; i < num; i++){
         ret.emplace_back(uni(rng));
         if(!table.contains(ret[i]) && !existing.contains(ret[i])){
@@ -111,65 +115,85 @@ vector<int> GenerateRandomNumbers(int num, vector<int>* exist){
     return ret;
 }
 
-void testSuccessful(const vector<int>& testArgs, HashTable* table){
-    for(int testArg : testArgs){
-        table->insert(testArg);
+vector<int> GenerateRandomSubset(int num, vector<int>* exist){
+    vector<int> ret;
+    random_device rd;     // only used once to initialise (seed) engine
+    mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+    uniform_int_distribution<int> uni(0,exist->size()); // guaranteed unbiased
+    for(int i = 0; i < num; i++){
+        ret.emplace_back((*exist)[uni(rd)]);
     }
-    auto start = chrono::steady_clock::now();
-    for(int testArg : testArgs){
-        cout << table->contains(testArg) << " ";
-    }
-    auto end = chrono::steady_clock::now();
-    cout << "Elapsed time in microseconds : "
-         << chrono::duration_cast<chrono::microseconds>(end - start).count()
-         << " µs" << endl;
+    return ret;
 }
 
-void testUnSuccessful(const vector<int>& testArgs, const vector<int>& failedSearch, HashTable* table){
+long test(const vector<int>& testArgs, const vector<int>& search, HashTable* table){
     for(int testArg : testArgs){
         table->insert(testArg);
     }
     auto start = chrono::steady_clock::now();
-    for(int searchArg : failedSearch){
-            cout << table->contains(searchArg) << " ";
+    for(int searchArg : search){
+            table->contains(searchArg);
     }
     auto end = chrono::steady_clock::now();
-    cout << "Elapsed time in microseconds : "
-         << chrono::duration_cast<chrono::microseconds>(end - start).count()
-         << " µs" << endl;
+//    cout << "Elapsed time in microseconds : "
+//         << chrono::duration_cast<chrono::microseconds>(end - start).count()
+//         << " µs" << endl;
+    return chrono::duration_cast<chrono::microseconds>(end - start).count();
 }
 
 int main()
 {
     int i;
-//    LinearProbe p;
-//    HashTable& table = p;
-//	table.insert(1);
-//	table.insert(5);
-//	table.insert(10);
-//	cout << (table.contains(1) == 1);
-//	cout << table.contains(2);
-//	cout << table.contains(3);
-//	cout << table.contains(4);
-//	cout << table.contains(5);
-//	cout << table.contains(10);
+    ofstream lin;
+    lin.open("linearprobe.csv");
+    ofstream dbl;
+    dbl.open("doublehash.csv");
+
     cout << std::boolalpha;
-    DoubleHash* dblhash = new DoubleHash;
-    cout << "Double Hash created!\n";
-    LinearProbe* linearp = new LinearProbe;
-    cout << "Linear Probe created!\n";
-    vector<int> sample = GenerateRandomNumbers(400, NULL);
-    cout << "Setup complete!\n";
-    testSuccessful(sample, dblhash);
-    testSuccessful(sample, linearp);
-    dblhash = new DoubleHash;
-    cout << "Double Hash created!\n";
-    linearp = new LinearProbe;
-    cout << "Linear Probe created!\n";
-    vector<int> wrong = GenerateRandomNumbers(400, &sample);
-    cout << "setup2 complete!\n";
-    testUnSuccessful(sample, wrong, dblhash);
-    testUnSuccessful(sample, wrong, linearp);
-	cin >> i;
+    //Load Factor Loop
+    for(int i = 1; i < 100; i++){
+        lin << i;
+        dbl << i;
+        for(int j = 0; j < testFreq; j++){
+            DoubleHash* dblhash = new DoubleHash;
+            LinearProbe* linearp = new LinearProbe;
+            vector<int> sample = GenerateRandomNumbers(HashTable::hashtableSize / 100 * i, NULL);
+            vector<int> success = GenerateRandomSubset(testSize, &sample);
+            lin << "," << test(sample, success, linearp);
+            dbl << "," << test(sample, success, dblhash);
+        }
+        if(i < 99){
+            lin << endl;
+            dbl << endl;
+        }
+    }
+    lin.close();
+    dbl.close();
+
+
+    ofstream linb;
+    linb.open("linearprobebad.csv");
+    ofstream dblb;
+    dblb.open("doublehashbad.csv");
+    // Worst Case
+    for(int i = 1; i < 100; i++){
+        linb << i;
+        dblb << i;
+        for(int j = 0; j < testFreq; j++){
+            DoubleHash* dblhash = new DoubleHash;
+            LinearProbe* linearp = new LinearProbe;
+            vector<int> sample = GenerateRandomNumbers(HashTable::hashtableSize / 100 * i, NULL);
+            vector<int> failed = GenerateRandomNumbers(HashTable::hashtableSize / 100 * i, NULL);
+            linb << "," << test(sample, failed, linearp);
+            dblb << "," << test(sample, failed, dblhash);
+        }
+        if(i < 99){
+            linb << endl;
+            dblb << endl;
+        }
+    }
+    linb.close();
+    dblb.close();
+    cin >> i;
     return 0;
 }
