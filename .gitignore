@@ -3,3 +3,9 @@
 */CMakeLists.txt
 */.idea
 */cmake-build-debug
+*/*.o
+*/*.obj
+*/*.exe
+*/*.cbp
+*/*.depend
+*/*.layout
