@@ -1,6 +1,5 @@
 #include "fstream"
 #include "iostream"
-#include "chrono"
 #include "random"
 #include "vector"
 
@@ -12,6 +11,7 @@ const int testSize = 1000;
 class HashTable{
     public:
         virtual bool insert(int item){return false;};
+        virtual long count(int item){return 0;};
         virtual bool contains(int item){return false;};
         void print(){
             for(int i = 0; i < hashtableSize; i++){
@@ -41,16 +41,29 @@ class LinearProbe: public HashTable{
 			table[index] = item;
 			return true;
 		};
-		bool contains(int item) override{
+        bool contains(int item) override{
+            int base_index = hashFunction(item);
+            int index = base_index;
+            while(table[index] != 0){
+                if(table[index] == item) return true;
+                index++;
+                if(index >= hashtableSize) index = index % hashtableSize;
+                if(index == base_index) return false;
+            }
+            return false;
+        };
+		long count(int item) override{
 			int base_index = hashFunction(item);
 			int index = base_index;
+			long count = 1;
 			while(table[index] != 0){
-				if(table[index] == item) return true;
+				if(table[index] == item) return count;
 				index++;
 				if(index >= hashtableSize) index = index % hashtableSize;
-				if(index == base_index) return false;
-			}
-			return false;
+				if(index == base_index) return count;
+                count++;
+            }
+			return count;
 		};
 };
 class DoubleHash: public HashTable{
@@ -74,18 +87,32 @@ class DoubleHash: public HashTable{
 			table[index] = item;
 			return true;
 		}
-		bool contains(int item) override{
+		long count(int item) override{
 			int base_index = hashFunction1(item);
 			int offset = hashFunction2(item);
 			int index = base_index;
+			long count = 1;
 			while(table[index] != 0){
-				if(table[index] == item) return true;
+				if(table[index] == item) return count;
 				index += offset;
 				if(index >= hashtableSize) index = index % hashtableSize;
-				if(index == base_index) return false;
-			}
-			return false;
+				if(index == base_index) return count;
+                count++;
+            }
+			return count;
 		}
+    bool contains(int item) override{
+        int base_index = hashFunction1(item);
+        int offset = hashFunction2(item);
+        int index = base_index;
+        while(table[index] != 0){
+            if(table[index] == item) return true;
+            index += offset;
+            if(index >= hashtableSize) index = index % hashtableSize;
+            if(index == base_index) return false;
+        }
+        return false;
+    }
 };
 
 vector<int> GenerateRandomNumbers(int num, vector<int>* exist){
@@ -126,28 +153,27 @@ vector<int> GenerateRandomSubset(int num, vector<int>* exist){
     return ret;
 }
 
-long test(const vector<int>& testArgs, const vector<int>& search, HashTable* table){
+unsigned long test(const vector<int>& testArgs, const vector<int>& search, HashTable* table){
     for(int testArg : testArgs){
         table->insert(testArg);
     }
-    auto start = chrono::steady_clock::now();
+    unsigned long tot = 0;
     for(int searchArg : search){
-            table->contains(searchArg);
+        tot += table->count(searchArg);
     }
-    auto end = chrono::steady_clock::now();
 //    cout << "Elapsed time in microseconds : "
 //         << chrono::duration_cast<chrono::microseconds>(end - start).count()
 //         << " µs" << endl;
-    return chrono::duration_cast<chrono::microseconds>(end - start).count();
+    return tot / search.size();
 }
 
 int main()
 {
-    int i;
+    int k;
     ofstream lin;
-    lin.open("linearprobe.csv");
+    lin.open("linearprobecount.csv");
     ofstream dbl;
-    dbl.open("doublehash.csv");
+    dbl.open("doublehashcount.csv");
 
     cout << std::boolalpha;
     //Load Factor Loop
@@ -172,9 +198,9 @@ int main()
 
 
     ofstream linb;
-    linb.open("linearprobebad.csv");
+    linb.open("linearprobecountbad.csv");
     ofstream dblb;
-    dblb.open("doublehashbad.csv");
+    dblb.open("doublehashcountbad.csv");
     // Worst Case
     for(int i = 1; i < 100; i++){
         linb << i;
@@ -194,6 +220,6 @@ int main()
     }
     linb.close();
     dblb.close();
-    cin >> i;
+    cin >> k;
     return 0;
 }
