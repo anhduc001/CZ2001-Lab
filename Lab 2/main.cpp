@@ -5,10 +5,12 @@
 #include "vector"
 
 using namespace std;
-
+// Number of tests per data point
 const int testFreq = 1000;
+// Number of queries per test
 const int testSize = 1000;
 
+// Abstract Base Class
 class HashTable{
     public:
         virtual bool insert(int item){return false;};
@@ -24,6 +26,8 @@ class HashTable{
 protected:
         int table[hashtableSize] = {0};
 };
+
+// Libear Probing Implementation
 class LinearProbe: public HashTable{
 	private:
 		int hashFunction(int item){
@@ -53,6 +57,7 @@ class LinearProbe: public HashTable{
 			return false;
 		};
 };
+// Doubke Hashing Implementation
 class DoubleHash: public HashTable{
 	private:
 		int hashFunction1(int item){
@@ -88,6 +93,7 @@ class DoubleHash: public HashTable{
 		}
 };
 
+// Randomly Generates 'num' unique integers that are not in the 'exist' vector.
 vector<int> GenerateRandomNumbers(int num, vector<int>* exist){
     DoubleHash existing;
     if(exist != nullptr){
@@ -115,6 +121,7 @@ vector<int> GenerateRandomNumbers(int num, vector<int>* exist){
     return ret;
 }
 
+// Randomly samples 'num' times from the 'exist' vector.
 vector<int> GenerateRandomSubset(int num, vector<int>* exist){
     vector<int> ret;
     random_device rd;     // only used once to initialise (seed) engine
@@ -126,6 +133,7 @@ vector<int> GenerateRandomSubset(int num, vector<int>* exist){
     return ret;
 }
 
+// Performs a measurement of computational time in microseconds for the test to complete.
 long test(const vector<int>& testArgs, const vector<int>& search, HashTable* table){
     for(int testArg : testArgs){
         table->insert(testArg);
@@ -143,7 +151,8 @@ long test(const vector<int>& testArgs, const vector<int>& search, HashTable* tab
 
 int main()
 {
-    int i;
+    // Success test
+    // Open files
     ofstream lin;
     lin.open("linearprobe.csv");
     ofstream dbl;
@@ -154,6 +163,7 @@ int main()
     for(int i = 1; i < 100; i++){
         lin << i;
         dbl << i;
+        // Testing loop
         for(int j = 0; j < testFreq; j++){
             DoubleHash* dblhash = new DoubleHash;
             LinearProbe* linearp = new LinearProbe;
@@ -167,18 +177,21 @@ int main()
             dbl << endl;
         }
     }
+    // Close Files
     lin.close();
     dbl.close();
 
-
+    // Failure test
+    // Open Files
     ofstream linb;
     linb.open("linearprobebad.csv");
     ofstream dblb;
     dblb.open("doublehashbad.csv");
-    // Worst Case
+    // Load Factor Loop
     for(int i = 1; i < 100; i++){
         linb << i;
         dblb << i;
+        // Testing loop
         for(int j = 0; j < testFreq; j++){
             DoubleHash* dblhash = new DoubleHash;
             LinearProbe* linearp = new LinearProbe;
@@ -192,8 +205,8 @@ int main()
             dblb << endl;
         }
     }
+    // Close file
     linb.close();
     dblb.close();
-    cin >> i;
     return 0;
 }
