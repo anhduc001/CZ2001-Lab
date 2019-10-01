@@ -3,11 +3,13 @@
 
 TimSort::TimSort(void)
 {
+
 }
 
 
 TimSort::~TimSort(void)
 {
+
 }
 void TimSort::MergeSort(std::vector<int>v, int first, int last){
 	if (first >= last){
@@ -49,6 +51,17 @@ void Merge(std::vector<int>v, int first, int mid,int last){
 	// copy vector
 	for (int i = 0; i < v.size(); i++){
 		v[i] = temp[i];
+	}
+}
+void TimSort::Timsort(std::vector<int>v, int first, int last, int S) {
+	if (last - first > S) {
+		int mid = (first + last) / 2;
+		TimSort::Timsort(v, first, mid, S);
+		TimSort::Timsort(v, mid + 1, last, S);
+		TimSort::Merge(v, first, mid ,last);
+	}
+	else {
+		insertionSort(v, first, last);
 	}
 }
 
