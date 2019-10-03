@@ -9,9 +9,11 @@
 using namespace std;
 
 //Maximum size of the vector
-const int maxSize = 1000000;
-//Number of tests per size
+const int maxSize = 10000;
+//Number of tests per size or per S value
 const int testFreq = 10;
+//Max of S value
+const int maxS = 100;
 
 //Merge function
 void merge(std::vector<int>&v, int first, int mid, int last)
@@ -122,27 +124,62 @@ long testSizeInput(vector<int> v, int choice){
 
 }
 
+long testValueS(vector<int> v, int S){
+    auto start = chrono::steady_clock::now();
+    timSort(v, 0, v.size() - 1, S);
+    auto end = chrono::steady_clock::now();
+    return chrono::duration_cast<chrono::microseconds>(end - start).count();
+
+}
 
 int main() {
 
     //Open file
     ofstream size;
     size.open("testSizeInput.csv");
+    ofstream valueS;
+    valueS.open("testValueS.csv");
 
     //Size Loop
+    size << "Size,timSort Time,mergeSort Time\n";
     for(int i = 1000; i <= maxSize; i += 1000)
     {
         size << i;
+        long long time0 = 0;
+        long long time1 = 0;
         //Testing Loop, with 0 for timSort and 1 for mergeSort
         for (int j = 0; j < testFreq; j++) {
             std::vector<int> v = generateRandomInput(i);
-            size << "," << testSizeInput(v, 0);
-            size << "," << testSizeInput(v, 1);
-            size << "\n";
+            time0 += testSizeInput(v, 0);
+            time1 += testSizeInput(v, 1);
         }
+        size << "," << time0 / testFreq;
+        size << "," << time1 / testFreq;
+        size << "\n";
     }
 
+
+    //Experiment with different S value
+    std::vector<int> v = generateRandomInput(1000);
+    valueS << "S,Time\n";
+    for(int i = 0; i < maxS; i ++)
+    {
+        valueS << i+1;
+        long long timeS = 0;
+
+        //Test Loop
+        for (int j = 0; j < testFreq; j++)
+        {
+            timeS += testValueS(v, i+1);
+        }
+
+        valueS << "," << timeS / testFreq;
+        valueS << "\n";
+    }
+
+
     size.close();
+    valueS.close();
     cout << "Finish!!" << endl;
     return 0;
 }
