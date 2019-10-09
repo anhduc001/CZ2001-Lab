@@ -13,13 +13,9 @@ const int maxSize = 10000;
 //Number of tests per size or per S value
 const int testFreq = 10;
 //Max of S value
-const int maxS = 100;
-// Number of Key Comparison
-int Key_compare = 0;
+const int maxS = 400;
+
 //Merge function
-void incr(int &Key_compare){
-    ++(Key_compare);
-}
 void merge(std::vector<int>&v, int first, int mid, int last)
 {
     std::vector<int> temp(v.size());
@@ -34,7 +30,6 @@ void merge(std::vector<int>&v, int first, int mid, int last)
         else{
             temp[cur_index++] = v[y++];
         }
-        //incr(&Key_compare);
     }
     if (x <= mid){
         for (int i = x; i <= mid; i++){
@@ -63,7 +58,7 @@ void mergeSort(std::vector<int>&v, int first, int last){
 }
 
 //Implementation of insertionSort
-void insertionSort(vector<int>&v, int first, int last) {
+void insertionSort1(vector<int>&v, int first, int last) {
     int i, j, cur;
     for (i = first; i <= last; i++)
     {
@@ -74,14 +69,40 @@ void insertionSort(vector<int>&v, int first, int last) {
         {
             v[j + 1] = v[j];
             j--;
-            //incr(&Key_compare);
         }
         v[j + 1] = cur;
     }
 }
-
+int binarySearch(vector<int> &v, int first, int last ,int i){
+    int lower = first;
+    int upper = last;
+    while (lower < upper){
+        int mid = (lower + upper) / 2;
+        if (v[mid] < v[i]){
+            return binarySearch(v, mid + 1, last, i);
+        }
+        else if (v[mid] > v[i]){
+            return binarySearch(v, lower , mid - 1, i);
+        }
+        else{
+            return mid;
+        }
+    }
+    return (v[i] > v[lower])? lower + 1 : lower;
+}
+void insertionSort(vector<int>&v, int first, int last) {
+    for (int i = first + 1; i <= last; i++){
+        int index = binarySearch(v, first, i - 1, i);
+        int copied = v[i];
+        for (int j = i; j > index; j -- ){
+            v[j] = v[j - 1];
+        }
+        v[index] = copied;
+    }
+}
 //Implementation of timSort
 void timSort(std::vector<int>&v, int first, int last, int S) {
+
     if (last - first > S) {
         int mid = first + (last - first) / 2;
         timSort(v, first, mid, S);
@@ -92,7 +113,18 @@ void timSort(std::vector<int>&v, int first, int last, int S) {
         insertionSort(v, first, last);
     }
 }
-
+void timSort1(std::vector<int>&v, int first, int last, int S) {
+    std::cout << first << ", "  << last << ", " << first - last << ", " << S<<endl;
+    if (last - first > S) {
+        int mid = first + (last - first) / 2;
+        timSort(v, first, mid, S);
+        timSort(v, mid + 1, last, S);
+        merge(v, first, mid ,last);
+    }
+    else {
+        insertionSort(v, first, last);
+    }
+}
 //Randomly generates a vector of n unordered integers
 vector<int> generateRandomInput(int n) {
     set<int> ret;
@@ -114,7 +146,7 @@ long testSizeInput(vector<int> v, int choice){
     if (choice == 0)
     {
         auto start = chrono::steady_clock::now();
-        timSort(v, 0, v.size() - 1, 500);
+        timSort(v, 0, v.size() - 1, 1);
         auto end = chrono::steady_clock::now();
         return chrono::duration_cast<chrono::microseconds>(end - start).count();
     }
@@ -137,7 +169,13 @@ long testValueS(vector<int> v, int S){
     return chrono::duration_cast<chrono::microseconds>(end - start).count();
 
 }
-
+std::vector<int> clone(std::vector<int> v){
+    vector<int> res ;
+    for (int i = 0; i < v.size(); i++){
+        res.push_back(v[i]);
+    }
+    return res;
+}
 int main() {
 
     //Open file
@@ -156,8 +194,9 @@ int main() {
         //Testing Loop, with 0 for timSort and 1 for mergeSort
         for (int j = 0; j < testFreq; j++) {
             std::vector<int> v = generateRandomInput(i);
+            std::vector<int> v1 = clone(v);
             time0 += testSizeInput(v, 0);
-            time1 += testSizeInput(v, 1);
+            time1 += testSizeInput(v1, 1);
         }
         size << "," << time0 / testFreq;
         size << "," << time1 / testFreq;
@@ -166,26 +205,23 @@ int main() {
 
 
     //Experiment with different S value
-    std::vector<int> v = generateRandomInput(1000);
+    std::vector<int> times(maxS);
     valueS << "S,Time\n";
-    for(int i = 0; i < maxS; i ++)
-    {
-        valueS << i+1;
-        long long timeS = 0;
-
-        //Test Loop
-        for (int j = 0; j < testFreq; j++)
-        {
-            timeS += testValueS(v, i+1);
-        }
-
-        valueS << "," << timeS / testFreq;
-        valueS << "\n";
+	for (int j = 0; j < testFreq; j++) {
+		std::vector<int> v = generateRandomInput(1000); // generate different vector each time
+		for (int i = 0; i < maxS; i++)
+		{
+		    std::vector<int> v1 = clone(v);
+            //Test Loop
+			times[i] += testValueS(v1, i + 1);
+		}
+	}
+    for (int i = 0; i < maxS; i++){
+        valueS << i+1 << ", " << times[i] / testFreq << endl;
     }
-
-
     size.close();
     valueS.close();
     cout << "Finish!!" << endl;
     return 0;
 }
+
