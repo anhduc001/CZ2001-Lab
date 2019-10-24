@@ -47,7 +47,7 @@ void merge(std::vector<int>&v, int first, int mid, int last)
     }
 }
 
-//Implementation of mergeSort
+//Implementation of initial mergeSort
 void mergeSort(std::vector<int>&v, int first, int last){
     if (last - first > 0){
         int mid = first + (last - first) / 2;
@@ -90,6 +90,7 @@ int binarySearch(vector<int> &v, int first, int last ,int i){
     }
     return (v[i] > v[lower])? lower + 1 : lower;
 }
+
 void insertionSort(vector<int>&v, int first, int last) {
     for (int i = first + 1; i <= last; i++){
         int index = binarySearch(v, first, i - 1, i);
@@ -161,7 +162,7 @@ long testSizeInput(vector<int> v, int choice){
         return 0;
 
 }
-
+// test with different S value
 long testValueS(vector<int> v, int S){
     auto start = chrono::steady_clock::now();
     timSort(v, 0, v.size() - 1, S);
@@ -176,37 +177,160 @@ std::vector<int> clone(std::vector<int> v){
     }
     return res;
 }
+// Binary Search key comparison
+long long binarySearchKeyComparisons(vector<int> v, int first, int last, int i){
+    int lower = first;
+    int upper = last;
+    while (lower < upper){
+        int mid = (lower + upper) / 2;
+        if (v[mid] < v[i]){
+            return binarySearchKeyComparisons(v, mid + 1, last, i) + 1;
+        }
+        else if (v[mid] > v[i]){
+            return binarySearchKeyComparisons(v, lower , mid - 1, i) + 1;
+        }
+        else{
+            return 1;
+        }
+    }
+    return 0;
+}
+// Insertion sort key comparison
+long long InsertionSortKeyComparisons(vector<int> v, int first, int last){
+    long long res = 0;
+    for (int i = first + 1; i <= last; i++){
+        int index = binarySearch(v, first, i - 1, i);
+        res += binarySearchKeyComparisons(v, first, last, i);
+        int copied = v[i];
+        for (int j = i; j > index; j -- ){
+            v[j] = v[j - 1];
+        }
+        v[index] = copied;
+    }
+    return res;
+}
+// MergeSort Key Comparison
+long long MergeKeyComparisons(vector<int> v, int first, int mid, int last){
+    std::vector<int> temp(v.size());
+    int x = first;
+    int y = mid + 1;
+    int cur_index = first;
+    long long res = 0;
+    while (x <= mid && y <= last){
+        if ( v[x] < v[y]){
+            temp[cur_index++] = v[x++];
+        }
+        else{
+            temp[cur_index++] = v[y++];
+        }
+        res++;
+    }
+    if (x <= mid){
+        for (int i = x; i <= mid; i++){
+            temp[cur_index++] = v[i];
+        }
+    }
+    else{
+        for (int i = y; i <= last; i++){
+            temp[cur_index++] = v[i];
+        }
+    }
+    // copy vector
+    for (int i = first; i <= last; i++){
+        v[i] = temp[i];
+    }
+    return res;
+}
+//compute key comparison for TimSort
+long long TimSortKeyComparisons(vector<int> v, int first, int last, int S){
+    long long res = 0;
+    if (last <= first){
+        return 0;
+    }
+    if (last - first > S) {
+        int mid = first + (last - first) / 2;
+        res += TimSortKeyComparisons(v, first, mid, S);
+        res += TimSortKeyComparisons(v, mid + 1, last, S);
+        res += MergeKeyComparisons(v, first,mid,last);
+    }
+    else {
+        res += InsertionSortKeyComparisons(v, first, last);
+    }
+    return res;
+}
+long long MergeSortKeyComparisons(vector<int>v, int first, int last){
+    long long res = 0;
+    if (last - first > 0){
+        int mid = first + (last - first) / 2;
+        res += MergeSortKeyComparisons(v, first, mid);
+        res += MergeSortKeyComparisons(v, mid + 1, last);
+        res += MergeKeyComparisons(v, first, mid, last);
+    }
+    return res;
+}
+// testing key Comparison for each Sorting algorithm
+long long keyCompare(vector<int>v, int choice){
+    switch(choice){
+        case 0:
+            return TimSortKeyComparisons(v, 0, v.size() - 1, 200); // timsort key comparison analyse
+        case 1:
+            return MergeSortKeyComparisons(v,0, v.size() - 1);// mergesort key comparison analyse
+        default:
+            return 0;
+    }
+}
+// main function
 int main() {
 
     //Open file
+    // testing for different size
     ofstream size;
     size.open("testSizeInput.csv");
+    //testing for different value S
     ofstream valueS;
     valueS.open("testValueS.csv");
-
-    //Size Loop
+    //testing for key comparison
+    ofstream key_comparisons;
+    key_comparisons.open("keyComparison.csv");
+    // header of each CSV file
     size << "Size,timSort Time,mergeSort Time\n";
+    valueS << "S,Time\n";
+    key_comparisons << "Size, timSort keyComparisons, mergeSort keyComparisons\n";
+    // size loop
     for(int i = 1000; i <= maxSize; i += 1000)
     {
         size << i;
         long long time0 = 0;
         long long time1 = 0;
+        long long keyComparison0 = 0; // Timsort
+        long long keyComparison1 = 0; // MergeSort
         //Testing Loop, with 0 for timSort and 1 for mergeSort
         for (int j = 0; j < testFreq; j++) {
             std::vector<int> v = generateRandomInput(i);
             std::vector<int> v1 = clone(v);
+            std::vector<int> v2 = clone(v);
+            std::vector<int> v3 = clone(v);
+            //time execution
             time0 += testSizeInput(v, 0);
             time1 += testSizeInput(v1, 1);
+            // count key comparison
+            keyComparison0 += keyCompare(v2, 0);
+            keyComparison1 += keyCompare(v3, 1);
         }
+        // write into Time testing file
         size << "," << time0 / testFreq;
         size << "," << time1 / testFreq;
         size << "\n";
+        // write into Key comparison File
+        key_comparisons << i;
+        key_comparisons << "," << keyComparison0 / testFreq;
+        key_comparisons << "," << keyComparison1 / testFreq;
+        key_comparisons << "\n";
     }
 
 
     //Experiment with different S value
     std::vector<int> times(maxS);
-    valueS << "S,Time\n";
 	for (int j = 0; j < testFreq; j++) {
 		std::vector<int> v = generateRandomInput(1000); // generate different vector each time
 		for (int i = 0; i < maxS; i++)
@@ -224,4 +348,3 @@ int main() {
     cout << "Finish!!" << endl;
     return 0;
 }
-
