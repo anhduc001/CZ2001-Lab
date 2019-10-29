@@ -56,6 +56,7 @@ void mergeSort(std::vector<int>&v, int first, int last){
         merge(v, first, mid, last);
     }
 }
+<<<<<<< HEAD
 
 //Implementation of insertionSort
 void insertionSort1(vector<int>&v, int first, int last) {
@@ -69,10 +70,38 @@ void insertionSort1(vector<int>&v, int first, int last) {
         {
             v[j + 1] = v[j];
             j--;
+=======
+// insert a number into a sorted vector
+int binarySearch(vector<int> &v, int first, int last ,int i){
+    int lower = first;
+    int upper = last;
+    while (lower < upper){
+        int mid = (lower + upper) / 2;
+        if (v[mid] < v[i]){
+            return binarySearch(v, mid + 1, last, i);
         }
-        v[j + 1] = cur;
+        else if (v[mid] > v[i]){
+            return binarySearch(v, lower , mid - 1, i);
+        }
+        else{
+            return mid;
+        }
+    }
+    return (v[i] > v[lower])? lower + 1 : lower;
+}
+//implement insertion sort function
+void insertionSort(vector<int>&v, int first, int last) {
+    for (int i = first + 1; i <= last; i++){
+        int index = binarySearch(v, first, i - 1, i);
+        int copied = v[i];
+        for (int j = i; j > index; j -- ){
+            v[j] = v[j - 1];
+>>>>>>> f263b85c8edf4d4fa38b50f0339011d713786d67
+        }
+        v[index] = copied;
     }
 }
+<<<<<<< HEAD
 int binarySearch(vector<int> &v, int first, int last ,int i){
     int lower = first;
     int upper = last;
@@ -115,6 +144,22 @@ void timSort(std::vector<int>&v, int first, int last, int S) {
     }
 }
 void timSort1(std::vector<int>&v, int first, int last, int S) {
+=======
+//Implementation of Merge Insertion Sort
+void MergeInsertionSort(std::vector<int>&v, int first, int last, int S) {
+
+    if (last - first > S) {
+        int mid = first + (last - first) / 2;
+        MergeInsertionSort(v, first, mid, S);
+        MergeInsertionSort(v, mid + 1, last, S);
+        merge(v, first, mid ,last);
+    }
+    else {
+        insertionSort(v, first, last);
+    }
+}
+void timSort(std::vector<int>&v, int first, int last, int S) {
+>>>>>>> f263b85c8edf4d4fa38b50f0339011d713786d67
     std::cout << first << ", "  << last << ", " << first - last << ", " << S<<endl;
     if (last - first > S) {
         int mid = first + (last - first) / 2;
@@ -147,7 +192,11 @@ long testSizeInput(vector<int> v, int choice){
     if (choice == 0)
     {
         auto start = chrono::steady_clock::now();
+<<<<<<< HEAD
         timSort(v, 0, v.size() - 1, 1);
+=======
+        MergeInsertionSort(v, 0, v.size() - 1, 10);
+>>>>>>> f263b85c8edf4d4fa38b50f0339011d713786d67
         auto end = chrono::steady_clock::now();
         return chrono::duration_cast<chrono::microseconds>(end - start).count();
     }
@@ -165,11 +214,15 @@ long testSizeInput(vector<int> v, int choice){
 // test with different S value
 long testValueS(vector<int> v, int S){
     auto start = chrono::steady_clock::now();
-    timSort(v, 0, v.size() - 1, S);
+    MergeInsertionSort(v, 0, v.size() - 1, S);
     auto end = chrono::steady_clock::now();
     return chrono::duration_cast<chrono::microseconds>(end - start).count();
 
 }
+<<<<<<< HEAD
+=======
+// return a vector cloning of a vector
+>>>>>>> f263b85c8edf4d4fa38b50f0339011d713786d67
 std::vector<int> clone(std::vector<int> v){
     vector<int> res ;
     for (int i = 0; i < v.size(); i++){
@@ -242,15 +295,24 @@ long long MergeKeyComparisons(vector<int> v, int first, int mid, int last){
     return res;
 }
 //compute key comparison for TimSort
+<<<<<<< HEAD
 long long TimSortKeyComparisons(vector<int> v, int first, int last, int S){
+=======
+long long MergeInsertionSortKeyComparisons(vector<int> v, int first, int last, int S){
+>>>>>>> f263b85c8edf4d4fa38b50f0339011d713786d67
     long long res = 0;
     if (last <= first){
         return 0;
     }
     if (last - first > S) {
         int mid = first + (last - first) / 2;
+<<<<<<< HEAD
         res += TimSortKeyComparisons(v, first, mid, S);
         res += TimSortKeyComparisons(v, mid + 1, last, S);
+=======
+        res += MergeInsertionSortKeyComparisons(v, first, mid, S);
+        res += MergeInsertionSortKeyComparisons(v, mid + 1, last, S);
+>>>>>>> f263b85c8edf4d4fa38b50f0339011d713786d67
         res += MergeKeyComparisons(v, first,mid,last);
     }
     else {
@@ -272,7 +334,11 @@ long long MergeSortKeyComparisons(vector<int>v, int first, int last){
 long long keyCompare(vector<int>v, int choice){
     switch(choice){
         case 0:
+<<<<<<< HEAD
             return TimSortKeyComparisons(v, 0, v.size() - 1, 200); // timsort key comparison analyse
+=======
+            return MergeInsertionSortKeyComparisons(v, 0, v.size() - 1, 10); // Merge insertion sort key comparison analyse
+>>>>>>> f263b85c8edf4d4fa38b50f0339011d713786d67
         case 1:
             return MergeSortKeyComparisons(v,0, v.size() - 1);// mergesort key comparison analyse
         default:
@@ -282,8 +348,12 @@ long long keyCompare(vector<int>v, int choice){
 // main function
 int main() {
 
+<<<<<<< HEAD
     //Open file
     // testing for different size
+=======
+    //Open file testing for different size
+>>>>>>> f263b85c8edf4d4fa38b50f0339011d713786d67
     ofstream size;
     size.open("testSizeInput.csv");
     //testing for different value S
@@ -293,9 +363,15 @@ int main() {
     ofstream key_comparisons;
     key_comparisons.open("keyComparison.csv");
     // header of each CSV file
+<<<<<<< HEAD
     size << "Size,timSort Time,mergeSort Time\n";
     valueS << "S,Time\n";
     key_comparisons << "Size, timSort keyComparisons, mergeSort keyComparisons\n";
+=======
+    size << "Size,MergeInsertionSort Time,MergeSort Time\n";
+    valueS << "S,Time\n";
+    key_comparisons << "Size, MergeInsertionSort keyComparisons, MergeSort keyComparisons\n";
+>>>>>>> f263b85c8edf4d4fa38b50f0339011d713786d67
     // size loop
     for(int i = 1000; i <= maxSize; i += 1000)
     {
@@ -332,7 +408,11 @@ int main() {
     //Experiment with different S value
     std::vector<int> times(maxS);
 	for (int j = 0; j < testFreq; j++) {
+<<<<<<< HEAD
 		std::vector<int> v = generateRandomInput(1000); // generate different vector each time
+=======
+		std::vector<int> v = generateRandomInput(10000); // generate different vector each time
+>>>>>>> f263b85c8edf4d4fa38b50f0339011d713786d67
 		for (int i = 0; i < maxS; i++)
 		{
 		    std::vector<int> v1 = clone(v);
@@ -345,6 +425,7 @@ int main() {
     }
     size.close();
     valueS.close();
+    key_comparisons.close();
     cout << "Finish!!" << endl;
     return 0;
 }
